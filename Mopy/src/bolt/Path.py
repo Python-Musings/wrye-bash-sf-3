@@ -145,7 +145,7 @@ def GPath(name):
 def GPathPurge():
     """Cleans out the _gpaths dictionary of unused Path object."""
     for key in _gpathsKeys():
-        if sysGetrefcount(_gpaths[key]) == 2:
+        if _sysGetrefcount(_gpaths[key]) == 2:
             # 1 for the reference actually in _gpaths
             # 1 for the temp reference passed to sys.getrefcount
             # So 2 = no other references
