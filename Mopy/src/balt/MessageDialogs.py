@@ -28,15 +28,12 @@
 # Imports ----------------------------------------------------------------------
 import wx
 from . import Vista
-from src.bolt.Regex import reURL,reURLCode
+from Mopy.src.bolt.Regex import reURL,reURLCode
 
 def VistaDialog(parent,message,title,buttons=[],checkBox=None,icon=None,commandLinks=True,footer='',expander=[],heading=''):
     heading = heading if heading is not None else title
     title = title if heading is not None else 'Wrye Bash'
-    dialog = Vista.TaskDialog(title,heading,message,
-                              buttons=[x[1] for x in buttons],
-                              icon=icon,
-                              parenthwnd=parent.GetHandle() if parent else None)
+    dialog = Vista.TaskDialog(title,heading,message,buttons=[x[1] for x in buttons],icon=icon,parenthwnd=parent.GetHandle() if parent else None)
     dialog.bind(Vista.HYPERLINK_CLICKED,Vista.StartURLCallback)
     if footer:
         dialog.set_footer(footer)
@@ -105,28 +102,35 @@ def AskStyled(parent,message,title,style,**kwdargs):
                              expander=footer,
                              **kwdargs)
     else:
-        dialog = wx.MessageDialog(parent,message,title,style)
+        dialog = wx.MessageDialog(parent, message, title, style)
         result = dialog.ShowModal()
         dialog.Destroy()
-    return result in (wx.ID_OK,wx.ID_YES)
+    return result in (wx.ID_OK, wx.ID_YES)
 
-def AskOk(parent,message,title='',**kwdargs):
+
+def AskOk(parent, message, title='', **kwdargs):
     """Shows a modal Ok message."""
-    return AskStyled(parent,message,title,wx.OK|wx.CANCEL,**kwdargs)
+    return AskStyled(parent, message, title, wx.OK | wx.CANCEL, **kwdargs)
 
-def AskYes(parent,message,title='',default=True,icon=wx.ICON_EXCLAMATION,**kwdargs):
+
+def AskYes(parent, message, title='', default=True, icon=wx.ICON_EXCLAMATION,
+    **kwdargs):
     """Shows a modal warning or question message."""
-    style = wx.YES_NO|icon|(wx.YES_DEFAULT if default else wx.NO_DEFAULT)
-    return AskStyled(parent,message,title,style,**kwdargs)
+    style = wx.YES_NO | icon | (wx.YES_DEFAULT if default else wx.NO_DEFAULT)
+    return AskStyled(parent, message, title, style, **kwdargs)
 
-def AskWarning(parent,message,title='Warning',**kwdargs):
+
+def AskWarning(parent, message, title='Warning', **kwdargs):
     """Shows a modal warning message."""
-    return AskStyled(parent,message,title,wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION,**kwdargs)
+    return AskStyled(parent, message, title,
+        wx.OK | wx.CANCEL | wx.ICON_EXCLAMATION, **kwdargs)
 
-def ShowOk(parent,message,title='',**kwdargs):
-    """Shows a modal error message."""
-    return AskStyled(parent,message,title,wx.OK,**kwdargs)
 
-def ShowError(parent,message,title='Error',**kwdargs):
+def ShowOk(parent, message, title='', **kwdargs):
     """Shows a modal error message."""
-    return AskStyled(parent,message,title,wx.OK|wx.ICON_HAND,**kwdargs)
+    return AskStyled(parent, message, title, wx.OK, **kwdargs)
+
+
+def ShowError(parent, message, title='Error', **kwdargs):
+    """Shows a modal error message."""
+    return AskStyled(parent, message, title, wx.OK | wx.ICON_HAND, **kwdargs)
