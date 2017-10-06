@@ -42,12 +42,8 @@ if not hasattr(sys, 'frozen'):
     # Currently this is only implemented for Python mode, not frozen apps.
     class UnicodeImporter(object):
         def find_module(self, fullname, path=None):
-            if isinstance(fullname, unicode):
-                fullname = fullname.replace(u'.', u'\\')
-                exts = (u'.pyc', u'.pyo', u'.py')
-            else:
-                fullname = fullname.replace('.', '\\')
-                exts = ('.pyc', '.pyo', '.py')
+            fullname = fullname.replace('.', '\\')
+            exts = ('.pyc', '.pyo', '.py')
             if os.path.exists(fullname) and os.path.isdir(fullname):
                 return self
             for ext in exts:
@@ -59,17 +55,12 @@ if not hasattr(sys, 'frozen'):
                 return sys.modules[fullname]
             else:  # set to avoid reimporting recursively
                 sys.modules[fullname] = types.ModuleType(fullname)
-            if isinstance(fullname, unicode):
-                filename = fullname.replace(u'.', u'\\')
-                ext = u'.py'
-                initfile = u'__init__'
-            else:
-                filename = fullname.replace('.', '\\')
-                ext = '.py'
-                initfile = '__init__'
+            filename = fullname.replace('.', '\\')
+            ext = '.py'
+            initfile = '__init__'
             try:
                 if os.path.exists(filename + ext):
-                    with open(filename + ext, 'U') as fp:
+                    with open(filename + ext, 'U'):
                         mod = importlib.import_module(fullname)
                         sys.modules[fullname] = mod
                         mod.__loader__ = self
@@ -81,14 +72,15 @@ if not hasattr(sys, 'frozen'):
                     # init file
                     initfile = os.path.join(filename, initfile + ext)
                     if os.path.exists(initfile):
-                        with open(initfile, 'U') as fp:
+                        with open(initfile, 'U'):
                             code = fp.read()
-                        exec compile(code, initfile, 'exec') in mod.__dict__
+                        codeobj = compile(code, initfile, 'exec') in mod.__dict__
+                        exec(codeobj)
                 return mod
             except Exception as e:  # wrap in ImportError a la python2 - will keep
                 # the original traceback even if import errors nest
-                print 'fail', filename + ext
-                raise ImportError, u'caused by ' + repr(e), sys.exc_info()[2]
+                print ('fail', filename + ext)
+                raise ImportError(u'caused by ' + repr(e), sys.exc_info()[2])
 
 
     sys.meta_path.append(UnicodeImporter())

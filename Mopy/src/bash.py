@@ -77,13 +77,13 @@ def VerifyRequirements():
         errors.append(_('wxPython is required.  None detected.  Get it from:') +
                       '\n    http://wiki.wxpython.org/ProjectPhoenix')
         haveWx = False
-    #--Python 3.2
-    if sys.version_info[0:2] != (3,2):
-        url = 'http://www.python.org/download/releases/3.2.3/'
+    #--Python 3.6
+    if sys.version_info[0:2] != (3,6):
+        url = 'https://www.python.org/downloads/release/python-363/'
         if haveWx:
-            url = '[[Python 3.2|'+url+']]'
+            url = '[[Python 3.6.3|'+url+']]'
         errors.append(
-            (_('Python 3.2 is required.  Current version is %(version)s.  Get it from:')
+            (_('Python 3.6.3 is required.  Current version is %(version)s.  Get it from:')
              % {'version':'.'.join(map(str,sys.version_info[0:3]))})
             + '\n    %s' % url)
     #--pywin32
