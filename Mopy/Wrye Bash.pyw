@@ -26,8 +26,11 @@
 
 # Import Hooks -----------------------------------------------------------------
 import sys
-if not hasattr(sys,'frozen'):
-    import imp,os
+
+if not hasattr(sys, 'frozen'):
+    import os, types, importlib
+
+
     # When a Python application/module is located in a directory with unicode
     # characters, this causes problems with imports.  The full path is encoded
     # to MBCS before passing to the filesystem, so any characters that do not
@@ -38,53 +41,59 @@ if not hasattr(sys,'frozen'):
     # directly and loads it into Python.
     # Currently this is only implemented for Python mode, not frozen apps.
     class UnicodeImporter(object):
-        def find_module(self,fullname,path=None):
-            fullname = fullname.replace('.','\\')
+        def find_module(self, fullname, path=None):
+            if isinstance(fullname, unicode):
+                fullname = fullname.replace(u'.', u'\\')
+                exts = (u'.pyc', u'.pyo', u'.py')
+            else:
+                fullname = fullname.replace('.', '\\')
+                exts = ('.pyc', '.pyo', '.py')
             if os.path.exists(fullname) and os.path.isdir(fullname):
                 return self
-            elif os.path.exists(fullname+'.py'):
-                return self
+            for ext in exts:
+                if os.path.exists(fullname + ext):
+                    return self
 
-        def load_module(self,fullname):
+        def load_module(self, fullname):
             if fullname in sys.modules:
                 return sys.modules[fullname]
+            else:  # set to avoid reimporting recursively
+                sys.modules[fullname] = types.ModuleType(fullname)
+            if isinstance(fullname, unicode):
+                filename = fullname.replace(u'.', u'\\')
+                ext = u'.py'
+                initfile = u'__init__'
             else:
-                sys.modules[fullname] = imp.new_module(fullname)
-            filename = fullname.replace('.','\\')
-            # File (module) import
-            if os.path.exists(filename+'.py'):
-                try:
-                    with open(filename+'.py','U') as fp:
-                        mod = imp.load_source(fullname,filename+'.py',fp)
+                filename = fullname.replace('.', '\\')
+                ext = '.py'
+                initfile = '__init__'
+            try:
+                if os.path.exists(filename + ext):
+                    with open(filename + ext, 'U') as fp:
+                        mod = importlib.import_module(fullname)
                         sys.modules[fullname] = mod
                         mod.__loader__ = self
-                        mod.__file__ = filename+'.py'
-                        mod.__package__ = fullname.rpartition('.')[0]
-                        return mod
-                except Exception as e:
-                    print('UnicodeImporter failed importing %s: %s' % (filename+'.py',e))
-                    if fullname in sys.modules:
-                          del sys.modules[fullname]
-                    raise
-            else:
-                # Directory (package) import
-                mod = sys.modules[fullname]
-                mod.__loader__ = self
-                mod.__file__ = filename
-                mod.__name__ = filename
-                mod.__path__ = [filename]
-                mod.__package__ = fullname
-                # __init__ file
-                initfile = os.path.join(filename,'__init__.py')
-                if os.path.exists(initfile):
-                    with open(initfile,'U') as fp:
-                        code = fp.read()
-                    exec(code,mod.__dict__)
+                else:
+                    mod = sys.modules[fullname]
+                    mod.__loader__ = self
+                    mod.__file__ = os.path.join(os.getcwd(), filename)
+                    mod.__path__ = [filename]
+                    # init file
+                    initfile = os.path.join(filename, initfile + ext)
+                    if os.path.exists(initfile):
+                        with open(initfile, 'U') as fp:
+                            code = fp.read()
+                        exec compile(code, initfile, 'exec') in mod.__dict__
                 return mod
+            except Exception as e:  # wrap in ImportError a la python2 - will keep
+                # the original traceback even if import errors nest
+                print 'fail', filename + ext
+                raise ImportError, u'caused by ' + repr(e), sys.exc_info()[2]
+
 
     sys.meta_path.append(UnicodeImporter())
-
 # Start Wrye Bash --------------------------------------------------------------
 if __name__ == '__main__':
     from src import bash
+
     bash.main()
