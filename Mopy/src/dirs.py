@@ -25,12 +25,13 @@
 """Initialize all the directories Wrye Bash will possibly need."""
 
 # Imports ----------------------------------------------------------------------
-#--Standard
+# --Standard
 import atexit
-#--Local
-from src.bolt import Path
-from src.bolt.Path import GPath, PathUnion
-import src.bass as bass
+# --Local
+from Mopy.src.bolt import Path
+from Mopy.src.bolt.Path import GPath, PathUnion
+import Mopy.src.bass as bass
+
 
 def _OnExit():
     """Cleans out any temporary files or directories created by Bash."""
@@ -38,6 +39,7 @@ def _OnExit():
         bass.dirs['temp'].rmtree()
     except Exception as e:
         pass
+
 
 def InitDirs():
     # Initialize directories.  To make sure Bash follows symlinks and stuff
@@ -78,8 +80,7 @@ def InitDirs():
         dirs['l10n'] = dirs['app'].join('l10n')
     else:
         dirs['l10n'] = PathUnion(dirs['user.bash'].join('l10n'),
-                                 dirs['app'].join('l10n'),
-                                 mode=PathUnion.MODE_TIMESTAMP)
+            dirs['app'].join('l10n'), mode=PathUnion.MODE_TIMESTAMP)
 
     # l10n.compiled - contains the compiled translation files
     if bass.opts.portable:
