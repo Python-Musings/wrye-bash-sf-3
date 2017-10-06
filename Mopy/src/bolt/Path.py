@@ -688,7 +688,7 @@ class PathUnion(object):
     MODE_REVERSE = 2
     MODE_TIMESTAMP = 4
 
-    def __init__(self,*names,mode=MODE_ORDER):
+    def __init__(self, *names, mode=MODE_ORDER):
         self._dirs = [GPath(x) for x in names]
         self._mode = mode
         if mode & PathUnion.MODE_REVERSE:
